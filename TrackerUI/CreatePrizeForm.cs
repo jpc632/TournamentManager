@@ -20,23 +20,19 @@ namespace TrackerUI
             InitializeComponent();
         }
 
-        private void CreatePrizeForm_Load(object sender, EventArgs e)
-        {
-
-        }
-
         private void createTeamButton_Click(object sender, EventArgs e)
         {
             if(ValidateForm())
             {
                 // Create model
-                PrizeModel model = new PrizeModel();
-                model.PlaceName = placeNameValue.Text;
-                model.PlaceNumber = int.Parse(placeNumberValue.Text);
-                model.PrizeAmount = decimal.Parse(prizeAmountValue.Text);
-                model.PrizePercentage = double.Parse(prizePercentageValue.Text);
-
-                GlobalConfig.Connection.CreatePrize(model);
+                PrizeModel prize = new PrizeModel() { 
+                    PlaceName = placeNameValue.Text, 
+                    PlaceNumber = int.Parse(placeNumberValue.Text), 
+                    PrizeAmount = decimal.Parse(prizeAmountValue.Text), 
+                    PrizePercentage = double.Parse(prizePercentageValue.Text)
+                };
+                
+                GlobalConfig.Connection.CreatePrize(prize);
 
                 // Set fields default values
                 placeNameValue.Text = ""; 

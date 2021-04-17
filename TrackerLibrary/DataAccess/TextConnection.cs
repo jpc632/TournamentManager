@@ -11,13 +11,39 @@ namespace TrackerLibrary.DataAccess
     public class TextConnection : IDataConnection
     {
         private const string PrizesFile = "PrizeModels.csv";
+        private const string PeopleFile = "PeopleModels.csv";
+
+        public PersonModel CreatePerson(PersonModel person)
+        {
+            // Load the text file
+            // Convert the text to List<PrizeModel>
+            List<PersonModel> people = PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();
+
+            // Find the max ID
+            int newId = 1;
+
+            if (people.Count > 0)
+            {
+                newId = people.OrderByDescending(x => x.Id).First().Id + 1;
+            }
+
+            person.Id = newId;
+
+            // Add person with newId
+            people.Add(person);
+
+            // Overwrite text file with the List<String>
+            people.SaveToPeopleFile(PeopleFile);
+
+            return person;
+        }
 
         /// <summary>
         /// Saves a new prize to the text file.
         /// </summary>
-        /// <param name="model">The prize model.</param>
+        /// <param name="prize">The prize model.</param>
         /// <returns>The prize model.</returns>
-        public PrizeModel CreatePrize(PrizeModel model)
+        public PrizeModel CreatePrize(PrizeModel prize)
         {
             // Load the text file
             // Convert the text to List<PrizeModel>
@@ -31,16 +57,20 @@ namespace TrackerLibrary.DataAccess
                 newId = prizes.OrderByDescending(x => x.Id).First().Id + 1;
             }
 
-            model.Id = newId;
+            prize.Id = newId;
 
             // Add prize with newId
-            prizes.Add(model);
+            prizes.Add(prize);
 
             // Overwrite text file with the List<String>
             prizes.SaveToPrizeFile(PrizesFile);
 
-            return model;
+            return prize;
         }
 
+        public List<PersonModel> GetPerson_All()
+        {
+            return PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();
+        }
     }
 }
