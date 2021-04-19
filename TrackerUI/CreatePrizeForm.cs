@@ -15,12 +15,16 @@ namespace TrackerUI
 {
     public partial class CreatePrizeForm : Form
     {
-        public CreatePrizeForm()
+        IPrizeRequester callingForm;
+
+        public CreatePrizeForm(IPrizeRequester caller)
         {
             InitializeComponent();
+
+            callingForm = caller;
         }
 
-        private void createTeamButton_Click(object sender, EventArgs e)
+        private void createPrizeButton_Click(object sender, EventArgs e)
         {
             if(ValidateForm())
             {
@@ -33,6 +37,9 @@ namespace TrackerUI
                 };
                 
                 GlobalConfig.Connection.CreatePrize(prize);
+
+                callingForm.PrizeComplete(prize);
+                this.Close();
 
                 // Set fields default values
                 placeNameValue.Text = ""; 

@@ -262,6 +262,7 @@ namespace TrackerUI
             this.createTeamButton.TabIndex = 28;
             this.createTeamButton.Text = "Create Team";
             this.createTeamButton.UseVisualStyleBackColor = false;
+            this.createTeamButton.Click += new System.EventHandler(this.createTeamButton_Click);
             // 
             // CreateTeamForm
             // 

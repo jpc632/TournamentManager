@@ -64,6 +64,84 @@ namespace TrackerLibrary.DataAccess
         }
 
         /// <summary>
+        /// Saves a new team to the database.
+        /// </summary>
+        /// <param name="team">The team model.</param>
+        /// <returns>The team model.</returns>
+        public TeamModel CreateTeam(TeamModel team)
+        {
+            using (IDbConnection connection =
+                new System.Data.SqlClient.SqlConnection(GlobalConfig.GetConnectionString(db)))
+            {
+                var p = new DynamicParameters();
+                p.Add("@TeamName", team.TeamName);
+                p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+                connection.Execute("dbo.spTeams_Insert", p, commandType: CommandType.StoredProcedure);
+
+                team.Id = p.Get<int>("@id");
+
+                foreach(PersonModel person in team.TeamMembers)
+                {
+                    p = new DynamicParameters();
+                    p.Add("@TeamId", team.Id);
+                    p.Add("@PersonId", person.Id);
+
+                    connection.Execute("dbo.spTeamMembers_Insert", p, commandType: CommandType.StoredProcedure);
+                }
+
+                return team;
+            }
+        }
+
+        public TournamentModel CreateTournament(TournamentModel tournament)
+        {
+            using (IDbConnection connection =
+                new System.Data.SqlClient.SqlConnection(GlobalConfig.GetConnectionString(db)))
+            {
+                var p = new DynamicParameters();
+                p.Add("@TournamentName", tournament.TournamentName);
+                p.Add("@EntryFee", tournament.EntryFee);
+                p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+                connection.Execute("dbo.spTeams_Insert", p, commandType: CommandType.StoredProcedure);
+
+                tournament.Id = p.Get<int>("@id");
+
+                InsertTournamentPrizes(connection, tournament);
+                InsertTournamentEntries(connection, tournament);
+
+                return tournament;
+            }
+        }
+
+        private void InsertTournamentPrizes(IDbConnection connection, TournamentModel tournament)
+        {
+            foreach (var prize in tournament.Prizes)
+            {
+                var p = new DynamicParameters();
+                p.Add("@TournamentId", tournament.Id);
+                p.Add("@PrizeId", prize.Id);
+                p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+                connection.Execute("dbo.spTournamentPrizes_Insert", p, commandType: CommandType.StoredProcedure);
+            }
+        }
+
+        private void InsertTournamentEntries(IDbConnection connection, TournamentModel tournament)
+        {
+            foreach (var team in tournament.EnteredTeams)
+            {
+                var p = new DynamicParameters();
+                p.Add("@TournamentId", tournament.Id);
+                p.Add("@TeamId", team.Id);
+                p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+                connection.Execute("dbo.spTournamentEntries_Insert", p, commandType: CommandType.StoredProcedure);
+            }
+        }
+
+        /// <summary>
         /// Returns all people in the database.
         /// </summary
         /// <returns>The list of people.</returns>
@@ -75,6 +153,31 @@ namespace TrackerLibrary.DataAccess
                 new System.Data.SqlClient.SqlConnection(GlobalConfig.GetConnectionString(db)))
             {
                 output = connection.Query<PersonModel>("dbo.spPeople_GetAll").ToList();
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        /// Returns all teams in the database.
+        /// </summary
+        /// <returns>The list of teams.</returns>
+        public List<TeamModel> GetTeam_All()
+        {
+            List<TeamModel> output;
+
+            using (IDbConnection connection =
+                new System.Data.SqlClient.SqlConnection(GlobalConfig.GetConnectionString(db)))
+            {
+                output = connection.Query<TeamModel>("dbo.spTeam_GetAll").ToList();
+
+                foreach(TeamModel team in output)
+                {
+                    var p = new DynamicParameters();
+                    p.Add("@TeamId", team.Id);
+
+                    team.TeamMembers = connection.Query<PersonModel>("dbo.spTeamMembers_GetByTeam", p, commandType: CommandType.StoredProcedure).ToList();
+                }
             }
 
             return output;

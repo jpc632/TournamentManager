@@ -9,6 +9,11 @@ namespace TrackerLibrary.Models
     public class TeamModel
     {
         /// <summary>
+        /// The unique identifier for the team.
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
         /// The name of the participating team.
         /// </summary>
         public string TeamName { get; set; }
