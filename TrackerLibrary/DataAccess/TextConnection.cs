@@ -13,19 +13,25 @@ namespace TrackerLibrary.DataAccess
         private const string PrizesFile = "PrizeModels.csv";
         private const string PeopleFile = "PeopleModels.csv";
         private const string TeamFile = "TeamModels.csv";
+        private const string TournamentFile = "TournamentModels.csv";
 
         public PersonModel CreatePerson(PersonModel person)
         {
             // Load the text file
             // Convert the text to List<PrizeModel>
-            List<PersonModel> people = PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();
+            List<PersonModel> people = PeopleFile
+                .FullFilePath()
+                .LoadFile()
+                .ConvertToPersonModels();
 
             // Find the max ID
             int newId = 1;
 
             if (people.Count > 0)
             {
-                newId = people.OrderByDescending(x => x.Id).First().Id + 1;
+                newId = people
+                    .OrderByDescending(x => x.Id)
+                    .First().Id + 1;
             }
 
             person.Id = newId;
@@ -48,14 +54,19 @@ namespace TrackerLibrary.DataAccess
         {
             // Load the text file
             // Convert the text to List<PrizeModel>
-            List<PrizeModel> prizes = PrizesFile.FullFilePath().LoadFile().ConvertToPrizeModels();
+            List<PrizeModel> prizes = PrizesFile
+                .FullFilePath()
+                .LoadFile()
+                .ConvertToPrizeModels();
 
             // Find the max ID
             int newId = 1;
 
             if(prizes.Count > 0)
             {
-                newId = prizes.OrderByDescending(x => x.Id).First().Id + 1;
+                newId = prizes
+                    .OrderByDescending(x => x.Id)
+                    .First().Id + 1;
             }
 
             prize.Id = newId;
@@ -76,14 +87,19 @@ namespace TrackerLibrary.DataAccess
         /// <returns>The team model.</returns>
         public TeamModel CreateTeam(TeamModel team)
         {
-            List<TeamModel> teams = TeamFile.FullFilePath().LoadFile().ConvertToTeamModels(PeopleFile);
+            List<TeamModel> teams = TeamFile
+                .FullFilePath()
+                .LoadFile()
+                .ConvertToTeamModels(PeopleFile);
 
             // Find the max ID
             int newId = 1;
 
             if (teams.Count > 0)
             {
-                newId = teams.OrderByDescending(x => x.Id).First().Id + 1;
+                newId = teams
+                    .OrderByDescending(x => x.Id)
+                    .First().Id + 1;
             }
 
             team.Id = newId;
@@ -99,7 +115,30 @@ namespace TrackerLibrary.DataAccess
 
         public TournamentModel CreateTournament(TournamentModel tournament)
         {
-            throw new NotImplementedException();
+            List<TournamentModel> tournaments = TournamentFile
+                .FullFilePath()
+                .LoadFile()
+                .ConvertToTournamentModels(TeamFile, PeopleFile, PrizesFile);
+
+            // Find the max ID
+            int newId = 1;
+
+            if (tournaments.Count > 0)
+            {
+                newId = tournaments
+                    .OrderByDescending(x => x.Id)
+                    .First().Id + 1;
+            }
+
+            tournament.Id = newId;
+
+            // Add prize with newId
+            tournaments.Add(tournament);
+
+            // Overwrite text file with the List<String>
+            tournaments.SaveToTournamentFile(TournamentFile);
+
+            return tournament;
         }
 
         /// <summary>
@@ -108,12 +147,18 @@ namespace TrackerLibrary.DataAccess
         /// <returns>The list of people.</returns>
         public List<PersonModel> GetPerson_All()
         {
-            return PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();
+            return PeopleFile
+                .FullFilePath()
+                .LoadFile()
+                .ConvertToPersonModels();
         }
 
         public List<TeamModel> GetTeam_All()
         {
-            return TeamFile.FullFilePath().LoadFile().ConvertToTeamModels(PeopleFile);
+            return TeamFile
+                .FullFilePath()
+                .LoadFile()
+                .ConvertToTeamModels(PeopleFile);
         }
     }
 }
