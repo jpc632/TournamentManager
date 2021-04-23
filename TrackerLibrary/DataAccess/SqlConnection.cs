@@ -104,12 +104,13 @@ namespace TrackerLibrary.DataAccess
                 p.Add("@EntryFee", tournament.EntryFee);
                 p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-                connection.Execute("dbo.spTeams_Insert", p, commandType: CommandType.StoredProcedure);
+                connection.Execute("dbo.spTournaments_Insert", p, commandType: CommandType.StoredProcedure);
 
                 tournament.Id = p.Get<int>("@id");
 
                 InsertTournamentPrizes(connection, tournament);
                 InsertTournamentEntries(connection, tournament);
+                InsertTournamentRounds(connection, tournament);
 
                 return tournament;
             }
@@ -138,6 +139,50 @@ namespace TrackerLibrary.DataAccess
                 p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
 
                 connection.Execute("dbo.spTournamentEntries_Insert", p, commandType: CommandType.StoredProcedure);
+            }
+        }
+
+        private void InsertTournamentRounds(IDbConnection connection, TournamentModel tournament)
+        {
+            foreach (var round in tournament.Rounds)
+            {
+                foreach (var matchup in round)
+                {
+                    // Save the matchup
+                    var p = new DynamicParameters();
+                    p.Add("@TournamentId", tournament.Id);
+                    p.Add("@MatchupRound", matchup.MatchupRound);
+                    p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+                    connection.Execute("dbo.spMatchups_Insert", p, commandType: CommandType.StoredProcedure);
+
+                    matchup.Id = p.Get<int>("@id");
+
+                    foreach (var entry in matchup.Entries)
+                    {
+                        // Save the entries
+                        p = new DynamicParameters();
+                        p.Add("@MatchupId", matchup.Id);
+                        
+                        // If it is the first round
+                        if(entry.ParentMatchup == null)
+                            p.Add("@ParentMatchupId", null);
+                        else
+                            p.Add("@ParentMatchupId", entry.ParentMatchup.Id);
+                        
+                        // If the entry is a Bye
+                        if(entry.TeamCompeting == null)
+                            p.Add("@TeamCompetingId", null);
+                        else
+                            p.Add("@TeamCompetingId", entry.TeamCompeting.Id);
+                        
+                        p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+                        connection.Execute("dbo.spMatchupEntries_Insert", p, commandType: CommandType.StoredProcedure);
+
+                        entry.Id = p.Get<int>("@id");
+                    }
+                }
             }
         }
 
